@@ -12,3 +12,5 @@ lateral regexp_split_to_table(p.countries, '\s*[;,]\s*') as x
 where p.countries is not null and p.countries <> ''
   and nullif(trim(x), '') is not null
 
+
+

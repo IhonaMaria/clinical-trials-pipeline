@@ -13,3 +13,11 @@ models:
       +schema: "silver"
     gold:
       +schema: "gold"
+
+seeds:
+  clinical_trials:
+    country_codes:
+      +column_types:
+        country: text
+        latitude: numeric
+        longitude: numeric
