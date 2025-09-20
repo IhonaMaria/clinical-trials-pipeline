@@ -1,0 +1,13 @@
+clinical_trials:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: postgres           # service name inside Docker network
+      user: user
+      password: password
+      port: 5432
+      dbname: clinical_trials
+      schema: silver
+      threads: 4
+      connect_timeout: 10

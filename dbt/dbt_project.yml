@@ -1,0 +1,15 @@
+name: clinical_trials
+version: 1.0.0
+profile: clinical_trials
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+seed-paths: ["seeds"]
+
+models:
+  clinical_trials:
+    +materialized: table
+    silver:
+      +schema: "silver"
+    gold:
+      +schema: "gold"

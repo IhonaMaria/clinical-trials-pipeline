@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: clinical_trials
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  dbt:
+    image: ghcr.io/dbt-labs/dbt-postgres:latest
+    working_dir: /usr/app
+    environment:
+      DBT_PROFILES_DIR: /root/.dbt
+      DBT_HOST: postgres       
+      DBT_PORT: "5432"
+      DBT_DB: clinical_trials
+      DBT_USER: user
+      DBT_PASS: password
+      DBT_SCHEMA: silver          # default schema for models in this run
+    volumes:
+      - ../dbt:/usr/app           # your dbt project
+      - ../dbt/profiles:/root/.dbt  # contains profiles.yml
+    depends_on:
+      - postgres
+
+volumes:
+  pg_data:
