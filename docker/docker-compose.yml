@@ -12,22 +12,69 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
 
-  dbt:
-    image: ghcr.io/dbt-labs/dbt-postgres:latest
-    working_dir: /usr/app
-    environment:
-      DBT_PROFILES_DIR: /root/.dbt
-      DBT_HOST: postgres       
-      DBT_PORT: "5432"
-      DBT_DB: clinical_trials
-      DBT_USER: user
-      DBT_PASS: password
-      DBT_SCHEMA: silver          # default schema for models in this run
-    volumes:
-      - ../dbt:/usr/app           # your dbt project
-      - ../dbt/profiles:/root/.dbt  # contains profiles.yml
+  airflow-webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: airflow-webserver
     depends_on:
       - postgres
+    environment:
+      AIRFLOW_CORE_EXECUTOR: LocalExecutor
+      AIRFLOW_DATABASE_SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@postgres:5432/clinical_trials
+      AIRFLOW_COREFERNET_KEY: 'oHLrW2guIeXfQ0J9Swy9MaNBgJJFL_pSfYY6ruh2mY='
+      AIRFLOW_CORE_LOAD_EXAMPLES: 'false'
+      AIRFLOW_API_AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
+      _AIRFLOW_WWW_USER_USERNAME: airflow
+      _AIRFLOW_WWW_USER_PASSWORD: airflow
+      # dbt inside Airflow
+      DBT_PROFILES_DIR: /home/airflow/.dbt
+      DBT_TARGET_PATH: /tmp/dbt_target
+      DBT_LOG_PATH: /tmp/dbt_logs
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ../ingestion:/usr/app/ingestion
+      - ../dbt:/usr/app
+      - ../dbt/profiles:/home/airflow/.dbt
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "
+        airflow db init &&
+        airflow users create --username airflow --password airflow --firstname Airflow --lastname Admin --role Admin --email airflow@example.com || true &&
+        airflow webserver
+      "
+
+  airflow-scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: airflow-scheduler
+    depends_on:
+      - airflow-webserver
+    environment:
+      AIRFLOW_CORE_EXECUTOR: LocalExecutor
+      AIRFLOW_DATABASE_SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@postgres:5432/clinical_trials
+      AIRFLOW_COREFERNET_KEY: 'oHLrW2guIeXfQ0J9Swy9MaNBgJJFL_pSfYY6ruh2mY='
+      AIRFLOW_CORE_LOAD_EXAMPLES: 'false'
+      # dbt inside Airflow
+      DBT_PROFILES_DIR: /home/airflow/.dbt
+      DBT_TARGET_PATH: /tmp/dbt_target
+      DBT_LOG_PATH: /tmp/dbt_logs
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ../ingestion:/usr/app/ingestion
+      - ../dbt:/usr/app
+      - ../dbt/profiles:/home/airflow/.dbt
+    command: >
+      bash -c "
+        sleep 10 &&
+        airflow scheduler
+      "
 
 volumes:
   pg_data:

@@ -8,3 +8,19 @@ __pycache__/
 .env
 **/.env
 docker/.env
+
+# dbt
+dbt/target/
+dbt/logs/
+dbt/.user.yml
+*.log
+dbt/package-lock.yml
+
+# Airflow
+docker/airflow/logs/
+docker/airflow/*.db
+docker/airflow/.env
+docker/airflow/.airflowenv
+docker/airflow/dags/__pycache__/
+docker/airflow/plugins/__pycache__/
+docker/airflow/logs/

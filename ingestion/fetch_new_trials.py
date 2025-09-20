@@ -6,7 +6,7 @@ DB_CONFIG = {
     "dbname": "clinical_trials",
     "user": "user",
     "password": "password",
-    "host": "localhost",
+    "host": "postgres",
     "port": 5432
 }
 

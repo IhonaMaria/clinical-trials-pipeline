@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: silver__studies
+    description: "Clinical trials (1 row per NCT study)."
+    columns:
+      - name: nct_id
+        tests:
+          - not_null
+          - unique
