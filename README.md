@@ -35,3 +35,6 @@ DAG to run the python ingestion an dbt into postgres
 -ingestion of other data types
 
 # BONUS QUESTIONS
+
+# HOW TO RUN IT IN YOUR MACHINE
+step by step
