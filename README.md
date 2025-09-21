@@ -140,139 +140,17 @@ This design enables:
 
 ## DATA ORCHESTRATION
 
-### Airflow DAG (`docker/airflow/dags/clinical_pipeline_dag.py`)
-This orchestration layer manages the complete pipeline execution:
+DAG to run the python ingestion an dbt into postgres
 
-**DAG Structure:**
-1. **Data Ingestion**: Fetches new trials from API
-2. **Silver Processing**: Runs dbt silver layer transformations
-3. **Gold Processing**: Runs dbt gold layer transformations
+## best practices
 
-The DAG executes on demand (but could be easily scheduled weekly or daily for example)
+## Improvements and considerations
+-document dbt
+-sqlfluff
+-more tests, include the test on airflow dag
+.env in case we deploy to production
+-pipeline monitoring
+-how to handle failure? 
+-ingestion of other data types
 
-**Dependencies:**
-```
-fetch_trials → dbt_run_silver → dbt_run_gold
-```
-
-## Best Practices
-
-- **Data validation**: Built-in dbt tests and constraints
-- **Modular design**: Separated concerns across layers
-- **Configuration management**: Environment-specific settings
-- **Documentation**
-- **Version control**: Git-based change management
-
-### Infrastructure
-- **Containerization**
-- **Resource isolation**: Dedicated containers for each service
-- **Persistent storage**: Data persistence across container restarts
-
-## Improvements and Considerations
-
-### Immediate Enhancements
-- **dbt Documentation**: Auto-generate model documentation and lineage
-- **SQLFluff**: Implement SQL linting for code quality
-- **Enhanced Testing**: Add extra dbt tests and Airflow DAG validation
-- **Environment Configuration**: Implement `.env` files for production deployment
-
-### Production Readiness
-- **Pipeline Monitoring**: Implement alerting and health checks
-- **Failure Handling**
-- **Scalability**: 
-  - Horizontal scaling for high-volume ingestion
-  - Partitioning strategies for large datasets
-  - Caching layers for frequently accessed data
-
-### Data Expansion
-- **Additional Data Sources**: 
-  - FDA drug approval data
-  - Medical literature APIs
-  - Real-world evidence databases
-- **Advanced Analytics**:
-  - Machine learning model integration
-  - Predictive analytics for trial outcomes
-  - Real-time data streaming capabilities
-
-## Getting Started
-
-### Prerequisites
-- Docker and Docker Compose
-- Git
-
-### Quick Start
-```bash
-# Clone the repository
-git clone <repository-url>
-cd clinical-trials-pipeline
-
-# Start the pipeline
-cd docker
-docker-compose up -d
-
-# Access Airflow UI
-open http://localhost:8080
-# Username: airflow, Password: airflow
-
-# Run the pipeline manually in Airflow UI
-```
-
-### Development Setup
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run dbt locally
-cd dbt
-dbt deps
-dbt run
-```
-
-## BONUS QUESTIONS
-
-### Why This Architecture?
-This medallion architecture provides:
-- **Data Quality**: Progressive data cleaning and validation
-- **Flexibility**: Easy to modify transformations without affecting raw data
-- **Auditability**: Complete data lineage and change tracking
-- **Performance**: Optimized queries at each layer
-
-### Scalability Considerations
-- **API Rate Limiting**: Implement exponential backoff and request queuing
-- **Database Optimization**: Indexing strategies and query optimization
-- **Resource Management**: Container resource limits and auto-scaling
-- **Data Partitioning**: Time-based partitioning for large datasets
-
-### Future Enhancements
-- **Real-time Processing**: Stream processing for live trial updates
-- **ML Integration**: Predictive models for trial success rates
-- **API Development**: RESTful APIs for data access
-- **Visualization**: Interactive dashboards and reporting tools
-
-
-# VISUALIZATION
-
-### For Demo Purposes
-1. **Start main pipeline**: `cd docker && docker-compose up -d`
-2. **Run data ingestion**: Execute the Airflow DAG
-3. **Start dashboard**: `cd metabase && docker-compose up -d`
-4. **Show results**: Navigate to http://localhost:3000
-
-### Prerequisites
-- Docker and Docker Compose
-- Your main clinical trials pipeline running (for data)
-
-### 1. Start the Dashboard
-```bash
-cd metabase
-docker-compose up -d
-```
-
-### 2. Access Metabase
-- **URL**: http://localhost:3000
-- **First-time setup**: Create admin account
-- **Database connection**: Already configured to connect to PostgreSQL
+# BONUS QUESTIONS
