@@ -2,31 +2,26 @@
 
 This is a comprehensive data engineering pipeline that ingests, transforms, and orchestrates clinical trial data from the ClinicalTrials.gov API using modern data stack technologies.
 
-## Overview
-
-This project demonstrates a production-ready data pipeline that:
+This proposed pipeline:
 - Fetches clinical trial data from the ClinicalTrials.gov API
 - Implements a medallion architecture for data quality and governance
 - Uses dbt for data transformation with SQL-based modeling
 - Orchestrates the entire pipeline using Apache Airflow
 - Stores data in PostgreSQL with proper schema organization
 
+Additionally, a visualization layer with Metabase is built to answer analytical questions.
+
 ## TECH STACK + WORKFLOW
 
-### Core Technologies
+<img width="1413" height="645" alt="image" src="https://github.com/user-attachments/assets/8d13e0ca-2667-4936-948d-b7f4a3aa062c" />
+
+Core Technologies
 - **Data Source**: ClinicalTrials.gov API v2
 - **Database**: PostgreSQL 15
 - **Data Transformation**: dbt (Data Build Tool) 1.9.1
 - **Orchestration**: Apache Airflow 2.8.4
 - **Containerization**: Docker & Docker Compose
 - **Language**: Python and SQL
-
-### Architecture Flow
-```
-ClinicalTrials.gov API → Python Ingestion → PostgreSQL (Bronze) → dbt (Silver/Gold) → Analytics Ready Data
-                                    ↓
-                              Airflow Orchestration
-```
 
 ## INGESTION
 
@@ -38,7 +33,6 @@ The pipeline connects to the **ClinicalTrials.gov API v2** (`https://clinicaltri
 
 ### Python Code (`ingestion/fetch_new_trials.py`)
 The ingestion script implements:
-- **Pagination handling**: Uses `nextPageToken` to fetch large datasets efficiently
 - **Data extraction**: Parses complex nested JSON to extract key trial attributes:
   - Trial identification (NCT ID, title)
   - Study design (type, phase)
@@ -46,14 +40,10 @@ The ingestion script implements:
   - Clinical details (conditions, interventions, countries)
 - **Database integration**: Direct PostgreSQL insertion
 
-Key features:
-- Configurable batch size (default: 1000 trials)
-- Error handling with detailed API response logging
-- Upsert logic to handle duplicate trials gracefully
-
 ## DATA TRANSFORMATION
 
 ### Data Analysis & Transformation Strategy
+
 The raw API data required significant transformation to be analytics-ready:
 
 **Raw Data Challenges:**
@@ -61,7 +51,6 @@ The raw API data required significant transformation to be analytics-ready:
 - Placeholder values ('NA', 'N/A', 'UNKNOWN', 'NULL')
 - Mixed data types and missing values
 - Nested JSON structures flattened into delimited strings (, ;)
-
 The raw data ingested was brought into a bronze schema in Postgres and then it was modeled with dbt.
 
 **Transformation Solutions:**
@@ -139,18 +128,37 @@ This design enables:
 - Scalable reporting solutions
 
 ## DATA ORCHESTRATION
+An Airflow DAG was used to run the python ingestion and dbt layers into postgres.
+I chose it to try to mymic a production environment. It reliably schedules and orders the pipeline, handles retries and provides built-in monitoring.
 
-DAG to run the python ingestion an dbt into postgres
+## Best practices used
+- tests for validation
+- separations of services with docker
 
-## best practices
 
 ## Improvements and considerations
--document dbt
--sqlfluff
--more tests, include the test on airflow dag
-.env in case we deploy to production
--pipeline monitoring
--how to handle failure? 
--ingestion of other data types
+- Documentation of dbt models, macros, etc 
+- Use [SQLFluff](https://medium.com/@ihona.correadecabo/linting-dbt-projects-with-sqlfluff-119be9e3742a)
+ for consistency
+- Do more dbt tests
+- Test the DAG
+- Use a .env in a production setting
+- Monitor the pipeline
+- Connect to other data sources
+
+# VISUALIZATION
+I containerized Metabase (a BI tool) with Docker to spin up a UI and build quick visualizations answering questions like trials by study type, geographic distribution of trials, etc. I chose metabase because it is free, easy to set up and you can build the visualizations on top of the database (in this case the gold layer). If you happen to change the gold layer logic, the visualizations update automatically.
+
+Here is a screenshot of the result:
+<img width="998" height="935" alt="dashboard" src="https://github.com/user-attachments/assets/d5c786bf-ee9e-471f-b53c-49d485c1a691" />
+
 
 # BONUS QUESTIONS
+
+
+
+
+# HOW TO SET THIS UP LOCALLY
+
+
+
