@@ -4,6 +4,7 @@
   )
 }}
 
+-- Goal: Explode the comma/semicolon separated countries for each ID.
 select distinct
   p.nct_id,
   nullif(trim(x), '') as country

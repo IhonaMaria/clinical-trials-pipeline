@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  metabase:
+    image: metabase/metabase:v0.49.15
+    container_name: metabase-app
+    environment:
+      MB_DB_FILE: /metabase.db/metabase.db
+      MB_JETTY_HOST: 0.0.0.0
+      MB_JETTY_PORT: 3000
+      # MB_SITE_URL: http://localhost:3000 
+    ports:
+      - "3000:3000"
+    volumes:
+      - metabase_data:/metabase.db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+volumes:
+  metabase_data:

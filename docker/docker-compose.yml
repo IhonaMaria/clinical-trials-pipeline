@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:15
+    image: postgres:15 # Tells Compose to pull a ready made image from Docker hub
     container_name: postgres
     environment:
       POSTGRES_USER: user
@@ -12,22 +12,26 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
 
+# Airflow built from the custom Dockerfile
+# Airflow consists of a webserver (for the UI) and a scheduler (schedules/runs tasks)
   airflow-webserver:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile  
     container_name: airflow-webserver
     depends_on:
       - postgres
+    user: "50000:0"
     environment:
-      AIRFLOW_CORE_EXECUTOR: LocalExecutor
-      AIRFLOW_DATABASE_SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@postgres:5432/clinical_trials
-      AIRFLOW_COREFERNET_KEY: 'oHLrW2guIeXfQ0J9Swy9MaNBgJJFL_pSfYY6ruh2mY='
-      AIRFLOW_CORE_LOAD_EXAMPLES: 'false'
-      AIRFLOW_API_AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor # Runs tasks in parallel on the same machine
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"  # Don't loag DAG examples, keep UI clean
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@postgres:5432/clinical_trials  # where Airflow stores DAG runs, task states, connections, etc.
+      AIRFLOW__CORE__FERNET_KEY: oHLrW2guIeXfQ0J9Swy9MaNBgJJFL_pSfYY6ruh2mY=
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: UTC
       _AIRFLOW_WWW_USER_USERNAME: airflow
       _AIRFLOW_WWW_USER_PASSWORD: airflow
-      # dbt inside Airflow
+      # dbt inside Airflow (env vars used by BashOperator preamble)
       DBT_PROFILES_DIR: /home/airflow/.dbt
       DBT_TARGET_PATH: /tmp/dbt_target
       DBT_LOG_PATH: /tmp/dbt_logs
@@ -54,11 +58,13 @@ services:
     container_name: airflow-scheduler
     depends_on:
       - airflow-webserver
+    user: "50000:0"
     environment:
-      AIRFLOW_CORE_EXECUTOR: LocalExecutor
-      AIRFLOW_DATABASE_SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@postgres:5432/clinical_trials
-      AIRFLOW_COREFERNET_KEY: 'oHLrW2guIeXfQ0J9Swy9MaNBgJJFL_pSfYY6ruh2mY='
-      AIRFLOW_CORE_LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@postgres:5432/clinical_trials
+      AIRFLOW__CORE__FERNET_KEY: oHLrW2guIeXfQ0J9Swy9MaNBgJJFL_pSfYY6ruh2mY=
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: UTC
       # dbt inside Airflow
       DBT_PROFILES_DIR: /home/airflow/.dbt
       DBT_TARGET_PATH: /tmp/dbt_target
@@ -70,8 +76,9 @@ services:
       - ../ingestion:/usr/app/ingestion
       - ../dbt:/usr/app
       - ../dbt/profiles:/home/airflow/.dbt
+    # Waits a bit for the webserver to init, then starts the scheduler
     command: >
-      bash -c "
+      bash -c "  
         sleep 10 &&
         airflow scheduler
       "

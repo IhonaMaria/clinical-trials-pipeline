@@ -1,6 +1,11 @@
+# 1. Pulls recent clinical trials from the API
+# 2. Flattens the fields 
+# 3. Saves the fields into Postgres in a bronze table called raw_trials
+
 import requests
 import psycopg2
 
+# API endpoint and DB connection settings
 BASE_URL = "https://clinicaltrials.gov/api/v2/studies"
 DB_CONFIG = {
     "dbname": "clinical_trials",
@@ -11,6 +16,7 @@ DB_CONFIG = {
 }
 
 def fetch_latest_trials(limit=1000):
+    # Ask the API for 100 studies per page and total count
     params = {
         "pageSize": 100,        
         "countTotal": "true"
@@ -20,15 +26,17 @@ def fetch_latest_trials(limit=1000):
     next_token = None
     total_fetched = 0
 
+    # Keep paging until we reach the limit or run out of pages
     while total_fetched < limit:
         if next_token:
             params["pageToken"] = next_token
-        resp = requests.get(BASE_URL, params=params, timeout=30)
+        resp = requests.get(BASE_URL, params=params, timeout=30) # Call the API 
         print("Requesting:", resp.url)
+        
+        # Raise a detailed error if HTTP status is not OK
         try:
             resp.raise_for_status()
         except requests.HTTPError:
-            # show API error text to debug quickly
             print("API error body:", resp.text)
             raise
 
@@ -36,7 +44,8 @@ def fetch_latest_trials(limit=1000):
         items = data.get("studies", [])
         if not items:
             break
-
+        
+        # Extract/flatten the fields we need from each study
         for s in items:
             ps = s.get("protocolSection", {})
             ident = ps.get("identificationModule", {})
@@ -66,14 +75,14 @@ def fetch_latest_trials(limit=1000):
         if not next_token:
             break
 
-    # Client-side sort by start_date (descending); None at the end
-    studies.sort(key=lambda r: (r["start_date"] is None, r["start_date"]), reverse=True)
-    # return as tuples for executemany
+    studies.sort(key=lambda r: (r["start_date"] is None, r["start_date"]), reverse=True) # Sort studies by start date
     return [
         (r["nct_id"], r["brief_title"], r["study_type"], r["phase"], r["overall_status"],
          r["start_date"], r["completion_date"], r["conditions"], r["interventions"], r["countries"])
         for r in studies
     ]
+    
+ # Connect and create bronze schema/table if needed
 
 def insert_into_postgres(studies):
     if not studies:
@@ -96,6 +105,8 @@ def insert_into_postgres(studies):
             countries TEXT
         );
     """)
+    
+    # Insert rows and ignore duplicates for nct_id
     cur.executemany("""
         INSERT INTO bronze.raw_trials (
             nct_id, brief_title, study_type, phase, overall_status,

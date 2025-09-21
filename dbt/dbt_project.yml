@@ -1,3 +1,5 @@
+# dbt project's blueprint (where to find things, build behaviour)
+
 name: clinical_trials
 version: 1.0.0
 profile: clinical_trials

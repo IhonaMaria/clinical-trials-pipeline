@@ -1,5 +1,7 @@
-clinical_trials:
-  target: dev
+# Connection settings dbt uses to talk to the warehouse (Postgres)
+
+clinical_trials: # Profile name. dbt_project points to this.
+  target: dev # default environment
   outputs:
     dev:
       type: postgres
@@ -9,5 +11,5 @@ clinical_trials:
       port: 5432
       dbname: clinical_trials
       schema: silver
-      threads: 4
+      threads: 4  # how many models dbt can build at once
       connect_timeout: 10

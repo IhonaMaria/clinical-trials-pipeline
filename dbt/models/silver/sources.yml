@@ -1,3 +1,5 @@
+# Declare raw tables so we can reference them in the silver models
+
 version: 2
 
 sources:

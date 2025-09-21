@@ -1,3 +1,5 @@
+# Built-in test to check that the primary key is unique and not null
+
 version: 2
 
 models:
