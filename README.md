@@ -222,3 +222,4 @@ Time spent: Around 10 hours
 -  1h for visualization
 -  2h documenting the project
 
+ChatGPT and Cursor was used to accelerate the process.
