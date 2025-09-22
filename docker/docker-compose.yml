@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:15 # Tells Compose to pull a ready made image from Docker hub
+    image: postgres:15
     container_name: postgres
     environment:
       POSTGRES_USER: user
@@ -12,76 +12,23 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
 
-# Airflow built from the custom Dockerfile
-# Airflow consists of a webserver (for the UI) and a scheduler (schedules/runs tasks)
-  airflow-webserver:
+  orchestrator:
     build:
       context: .
-      dockerfile: Dockerfile  
-    container_name: airflow-webserver
+      dockerfile: Dockerfile 
+    container_name: orchestrator
     depends_on:
       - postgres
-    user: "50000:0"
     environment:
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor # Runs tasks in parallel on the same machine
-      AIRFLOW__CORE__LOAD_EXAMPLES: "False"  # Don't loag DAG examples, keep UI clean
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@postgres:5432/clinical_trials  # where Airflow stores DAG runs, task states, connections, etc.
-      AIRFLOW__CORE__FERNET_KEY: oHLrW2guIeXfQ0J9Swy9MaNBgJJFL_pSfYY6ruh2mY=
-      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth
-      AIRFLOW__CORE__DEFAULT_TIMEZONE: UTC
-      _AIRFLOW_WWW_USER_USERNAME: airflow
-      _AIRFLOW_WWW_USER_PASSWORD: airflow
-      # dbt inside Airflow (env vars used by BashOperator preamble)
-      DBT_PROFILES_DIR: /home/airflow/.dbt
-      DBT_TARGET_PATH: /tmp/dbt_target
-      DBT_LOG_PATH: /tmp/dbt_logs
+      TZ: Europe/Madrid
+      SCHEDULE_CRON: "0 7 * * *"
+      RUN_ON_START: "true"
     volumes:
-      - ./airflow/dags:/opt/airflow/dags
-      - ./airflow/logs:/opt/airflow/logs
-      - ./airflow/plugins:/opt/airflow/plugins
       - ../ingestion:/usr/app/ingestion
       - ../dbt:/usr/app
-      - ../dbt/profiles:/home/airflow/.dbt
-    ports:
-      - "8080:8080"
-    command: >
-      bash -c "
-        airflow db init &&
-        airflow users create --username airflow --password airflow --firstname Airflow --lastname Admin --role Admin --email airflow@example.com || true &&
-        airflow webserver
-      "
-
-  airflow-scheduler:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: airflow-scheduler
-    depends_on:
-      - airflow-webserver
-    user: "50000:0"
-    environment:
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@postgres:5432/clinical_trials
-      AIRFLOW__CORE__FERNET_KEY: oHLrW2guIeXfQ0J9Swy9MaNBgJJFL_pSfYY6ruh2mY=
-      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
-      AIRFLOW__CORE__DEFAULT_TIMEZONE: UTC
-      # dbt inside Airflow
-      DBT_PROFILES_DIR: /home/airflow/.dbt
-      DBT_TARGET_PATH: /tmp/dbt_target
-      DBT_LOG_PATH: /tmp/dbt_logs
-    volumes:
-      - ./airflow/dags:/opt/airflow/dags
-      - ./airflow/logs:/opt/airflow/logs
-      - ./airflow/plugins:/opt/airflow/plugins
-      - ../ingestion:/usr/app/ingestion
-      - ../dbt:/usr/app
-      - ../dbt/profiles:/home/airflow/.dbt
-    # Waits a bit for the webserver to init, then starts the scheduler
-    command: >
-      bash -c "  
-        sleep 10 &&
-        airflow scheduler
-      "
+      - ./logs:/app/logs
+    restart: unless-stopped
+    command: ["python", "/app/orchestrate.py"]
 
 volumes:
   pg_data:
