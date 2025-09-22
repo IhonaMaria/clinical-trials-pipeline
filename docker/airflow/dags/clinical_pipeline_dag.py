@@ -1,4 +1,7 @@
-# Orchestration Airfow DAG
+# Orchestration Airfow DAG included here as a template. 
+# Finally not used in the project
+
+# Objectives:
 
 # 1. Runs the Python Script to pull trials from the API into Postgres
 # 2. Runs silver transformations

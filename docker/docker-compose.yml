@@ -27,7 +27,7 @@ services:
       - ../ingestion:/usr/app/ingestion
       - ../dbt:/usr/app
       - ./logs:/app/logs
-    restart: unless-stopped
+    restart: "no"
     command: ["python", "/app/orchestrate.py"]
 
 volumes:
