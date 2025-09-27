@@ -63,7 +63,7 @@ The raw data ingested was brought into a bronze schema in Postgres and then it w
 dbt was chosen for data transformation because:
 - Leverages existing SQL skills
 - Has Git-based model management
-- Has built-in data quality tests
+- Has built-in data quality [tests](https://medium.com/@ihona.correadecabo/getting-started-with-dbt-tests-af10fdd6fc45)
 - Offers modularity through reusable models and macros
 - It can handle incremental processing (although not used here, but good in production environments and for large datasets)
 
@@ -189,19 +189,19 @@ For the data pipeline:
 3. Go to the docker folder inside the project: cd docker
 4. Start Postgres: docker compose up -d postgres
 5. Install Dbeaver, go to the interface and select "new database connection". Choose Postgres and then fill the connection details:
-<img width="657" height="385" alt="image" src="https://github.com/user-attachments/assets/03e61eed-c377-403f-967f-caa8f6a5ab2a" />
+<img width="1227" height="677" alt="image" src="https://github.com/user-attachments/assets/4984a8da-4349-4aa1-9979-c9cded292cbf" />
 
 
 
 
-<img width="473" height="435" alt="image" src="https://github.com/user-attachments/assets/3083c2d2-d4d4-47c1-a033-4117710fe1d9" />
+<img width="687" height="722" alt="image" src="https://github.com/user-attachments/assets/fe935d17-61e0-408c-adaf-20f4657f87db" />
 
 - database: clinical_trials
 - Name: user
 - Password: password
 - Port: 5432
 
-6. Run the data pipeline once: docker compose run --rm orchestrator python /app/orchestrate.py --once
+6. Run the data pipeline once: **docker compose run --rm orchestrator python /app/orchestrate.py --once**
 7. You can see the created tables in Dbeaver, for instance: select * from clinical_trials.gold.gld_interventions
 
 For the visualization:
@@ -222,4 +222,4 @@ Time spent: Around 10 hours
 -  1h for visualization
 -  2h documenting the project
 
-ChatGPT and Cursor was used to accelerate the process.
+ChatGPT and Cursor were used to accelerate the process.
