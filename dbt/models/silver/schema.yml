@@ -3,7 +3,7 @@
 version: 2
 
 models:
-  - name: silver__studies
+  - name: slv_processed_trials
     description: "Clinical trials (1 row per NCT study)."
     columns:
       - name: nct_id

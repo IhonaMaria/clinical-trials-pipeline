@@ -19,10 +19,10 @@ def fetch_latest_trials(limit=1000):
     # Ask the API for 100 studies per page and total count
     params = {
         "pageSize": 100,        
-        "countTotal": "true"
+        "countTotal": "true" # Include the total number of matching studies in the response metadata
     }
 
-    studies = []
+    studies = [] # Where we store the flattened rows
     next_token = None
     total_fetched = 0
 
@@ -41,7 +41,7 @@ def fetch_latest_trials(limit=1000):
             raise
 
         data = resp.json()
-        items = data.get("studies", [])
+        items = data.get("studies", []) # List of study objects on this page.
         if not items:
             break
         
