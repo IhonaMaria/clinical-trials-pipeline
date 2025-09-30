@@ -51,6 +51,8 @@ The raw API data required significant transformation to be analytics-ready:
 - Placeholder values ('NA', 'N/A', 'UNKNOWN', 'NULL')
 - Mixed data types and missing values
 - Nested JSON structures flattened into delimited strings (, ;)
+
+  
 The raw data ingested was brought into a bronze schema in Postgres and then it was modeled with dbt.
 
 **Transformation Solutions:**
@@ -106,14 +108,14 @@ The pipeline implements a **medallion architecture** with three layers:
   - Date parsing and standardization
   - Null handling and data type conversion
   - Business rule application (e.g., phase logic)
-  - Data quality validation
+  - Data quality validation thorugh dbt tests
 
 #### Gold Layer (Analytics Ready)
 - **Purpose**: "Business-ready" datasets for analytics and reporting
 - **Schema**: `gold.*`
 - **Features**:
   - Calculated metrics (study duration, for example)
-  - Ready for visualization tools
+  - Ready for visualization
 
 The gold layer implements a **star schema** pattern:
 - **Fact Table**: `gld_enriched_trials` (central trial data)
@@ -128,15 +130,15 @@ This design enables:
 - Scalable reporting solutions
 
 ## DATA ORCHESTRATION
-The entire pipeline was orchestrated with a single Python script inside Docker. It ingests the data from the API into the bronze layer (running the fetch_new_trials code), and then runs dbt silver and gold models.This kept the project simple, portable, and conflict-free. Airflow was attempted, and example DAG can be found as a result here: clinical-trials-pipeline\docker\airflow\dags\clinical_pipeline_dag.py. Due to time constrains, it was not feasible in the end. However, in production environments Airflow shines for scheduling and monitoring complex workflows. 
+The entire pipeline was orchestrated with a single Python script inside Docker. It ingests the data from the API into the bronze layer (running the fetch_new_trials code), and then runs dbt silver and gold models.This kept the project simple, portable, and conflict-free. Airflow was attempted; an example DAG can be found as a result here: clinical-trials-pipeline\docker\airflow\dags\clinical_pipeline_dag.py. Due to time constrains, it was not feasible in the end. However, in production environments Airflow shines for scheduling and monitoring complex workflows. 
 
 
 ## FUTURE IMPROVEMENTS AND CONSIDERATIONS
 - Documentation of dbt models, macros, etc 
 - Use [SQLFluff](https://medium.com/@ihona.correadecabo/linting-dbt-projects-with-sqlfluff-119be9e3742a)
- for consistency
-- Do more dbt tests
-- Orchestrate using Airflow
+ for code consistency
+- Build more dbt tests for different casuistics
+- Orchestrate the pipeline using Airflow
 - Use a .env in a production setting
 - Monitor the pipeline
 - Connect to other data sources
@@ -211,6 +213,8 @@ For the visualization:
 3. You will need to register and establish the connection with the gold layer.
 
 Note that you won't be able to reproduce the visualization since it will be linked to my metabase account. 
+
+Here you can find a [tutorial](https://medium.com/@ihona.correadecabo/easy-steps-to-run-metabase-on-docker-f3085e29d4fb) to help you run Metabase on Docker and build your own visualizations.
 
 # FINAL NOTES
 Time spent: Around 10 hours
